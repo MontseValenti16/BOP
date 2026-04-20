@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blowout Preventer</title>
+<link rel="icon" href="petro.png" type="image/png">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0a0d1a; font-family:'Segoe UI',sans-serif; color:#e8eaf6; overflow-x:hidden; min-height:100vh; }
+
+  .header {
+    background:linear-gradient(90deg,rgba(15,18,40,0.98),rgba(20,24,55,0.98));
+    border-bottom:1px solid rgba(120,90,255,0.3);
+    padding:12px 24px; display:flex; align-items:center; gap:16px;
+  }
+
+  .logo-box {
+    width:36px; height:36px; border-radius:8px;
+    background:#ffffff;
+    border:1px solid rgba(255,255,255,0.24);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    flex-shrink:0;
+  }
+
+  .logo-box img {
+    width:75%;
+    height:75%;
+    object-fit:contain;
+    display:block;
+  }
+
+  .fluid-kick-shadow {
+    filter: drop-shadow(0 0 22px rgba(255, 80, 80, 0.55));
+  }
+
+  .header-text h1 { font-size:18px; font-weight:700; letter-spacing:1.5px; color:#f0f0ff; }
+  .header-text p  { font-size:10px; color:#8890cc; letter-spacing:2px; text-transform:uppercase; margin-top:1px; }
+  .scenario-badge {
+    margin-left:auto; padding:5px 16px; border-radius:20px;
+    font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
+    transition:all 0.5s;
+  }
+  .badge-stable  { background:rgba(34,197,94,0.15);  color:#4ade80; border:1px solid rgba(34,197,94,0.4); }
+  .badge-kick    { background:rgba(239,68,68,0.15);  color:#f87171; border:1px solid rgba(239,68,68,0.4); }
+  .badge-control { background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.4); }
+
+  .main { display:grid; grid-template-columns:340px 1fr; height:calc(100vh - 66px); }
+
+  .left-panel {
+    background:linear-gradient(180deg,rgba(10,13,30,0.98),rgba(14,18,45,0.98));
+    border-right:1px solid rgba(100,80,220,0.2);
+    padding:16px 14px; overflow-y:auto;
+    display:grid; grid-template-columns:1fr 1fr; gap:10px; align-content:start;
+  }
+  .card {
+    background:rgba(255,255,255,0.04);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,0.1); border-radius:13px;
+    padding:12px 14px; position:relative; overflow:hidden; transition:all 0.4s;
+  }
+  .card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,0.05),transparent 60%); pointer-events:none; }
+  .card.alert { border-color:rgba(239,68,68,0.5); box-shadow:0 0 18px rgba(239,68,68,0.15); }
+  .card.warn  { border-color:rgba(251,191,36,0.5); box-shadow:0 0 18px rgba(251,191,36,0.12); }
+  .card.safe  { border-color:rgba(34,197,94,0.4);  box-shadow:0 0 14px rgba(34,197,94,0.1); }
+  .card-label { font-size:9px; color:#8890cc; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:3px; }
+  .card-value { font-size:20px; font-weight:700; transition:color 0.4s; }
+  .card-unit  { font-size:10px; color:#6670aa; margin-top:1px; }
+  .val-green  { color:#4ade80; } .val-red    { color:#f87171; }
+  .val-yellow { color:#fbbf24; } .val-blue   { color:#60a5fa; }
+  .val-magenta{ color:#e879f9; } .val-white  { color:#f0f0ff; }
+  .progress-bar { height:3px; border-radius:2px; background:rgba(255,255,255,0.08); margin-top:7px; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:2px; transition:width 0.8s,background 0.4s; }
+  .panel-title {
+    grid-column:1/-1; font-size:10px; letter-spacing:2px; text-transform:uppercase;
+    color:#5560aa; padding:3px 0 2px; border-bottom:1px solid rgba(100,80,200,0.15); margin-bottom:3px;
+  }
+  .fluid-badge { display:inline-block; padding:3px 9px; border-radius:11px; font-size:10px; font-weight:600; letter-spacing:1px; transition:all 0.4s; }
+  .badge-gas  { background:rgba(251,191,36,0.2); color:#fbbf24; border:1px solid rgba(251,191,36,0.4); }
+  .badge-agua { background:rgba(96,165,250,0.2); color:#60a5fa; border:1px solid rgba(96,165,250,0.4); }
+  .badge-none { background:rgba(100,110,180,0.12); color:#6670aa; border:1px solid rgba(100,110,180,0.18); }
+  .status-dot { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:5px; }
+  .dot-green  { background:#4ade80; box-shadow:0 0 5px #4ade80; }
+  .dot-red    { background:#f87171; box-shadow:0 0 7px #f87171; animation:blink .5s ease-in-out infinite; }
+  .dot-yellow { background:#fbbf24; box-shadow:0 0 5px #fbbf24; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  .left-panel::-webkit-scrollbar { width:3px; }
+  .left-panel::-webkit-scrollbar-thumb { background:rgba(100,80,200,0.3); border-radius:2px; }
+
+  .right-panel {
+    background:radial-gradient(ellipse at 50% 15%,rgba(30,20,80,0.55) 0%,rgba(8,10,25,1) 70%);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    position:relative; overflow:hidden;
+  }
+
+  .timer-bar { position:absolute; bottom:0; left:0; height:3px; background:linear-gradient(90deg,#a855f7,#6366f1); transition:width .3s linear; }
+  .scenario-timer { position:absolute; bottom:10px; right:16px; font-size:10px; color:#5560aa; letter-spacing:1px; }
+
+  @keyframes ring-pulse {
+    0%   { transform:translateX(-50%) scale(0.7); opacity:0.9; }
+    100% { transform:translateX(-50%) scale(2.2); opacity:0; }
+  }
+  .pressure-ring { position:absolute; border-radius:50%; opacity:0; border:1px solid transparent; transition:opacity .5s; }
+  .pressure-ring.active { opacity:1; animation:ring-pulse 1.1s ease-out infinite; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-box"><img src="petro.png" alt="Logo"></div>
+  <div class="header-text">
+    <h1>BLOWOUT PREVENTER</h1>
+    <p>Well Control Simulator · Real-Time</p>
+  </div>
+  <div id="scenarioBadge" class="scenario-badge badge-stable">● Pozo Estable</div>
+</div>
+
+<div class="main">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="panel-title">Presiones del Sistema</div>
+
+    <div class="card" id="cardSIDPP">
+      <div class="card-label">SIDPP · Tubería</div>
+      <div class="card-value val-green" id="valSIDPP">1,240</div>
+      <div class="card-unit">PSI — Presión al cerrar</div>
+      <div class="progress-bar"><div class="progress-fill" id="pbSIDPP" style="width:12%;background:#4ade80"></div></div>
+    </div>
+
+    <div class="card" id="cardSICP">
+      <div class="card-label">SICP · Anular</div>
+      <div class="card-value val-blue" id="valSICP">1,480</div>
+      <div class="card-unit">PSI — Presión anular</div>
+      <div class="progress-bar"><div class="progress-fill" id="pbSICP" style="width:15%;background:#60a5fa"></div></div>
+    </div>
+
+    <div class="card" id="cardPF">
+      <div class="card-label">P. Formación</div>
+      <div class="card-value val-magenta" id="valPF">2,100</div>
+      <div class="card-unit">PSI — Grad. poro</div>
+      <div class="progress-bar"><div class="progress-fill" id="pbPF" style="width:21%;background:#e879f9"></div></div>
+    </div>
+
+    <div class="card" id="cardVol">
+      <div class="card-label">Volumen Influjo</div>
+      <div class="card-value val-white" id="valVol">0.0</div>
+      <div class="card-unit">Barriles · Pit gain</div>
+      <div class="progress-bar"><div class="progress-fill" id="pbVol" style="width:0%;background:#f0f0ff"></div></div>
+    </div>
+
+    <div class="card" id="cardTipo" style="grid-column:1/-1">
+      <div class="card-label">Tipo de Influjo</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:5px">
+        <span class="fluid-badge badge-none" id="fluidBadge">— Sin Influjo</span>
+        <div style="flex:1;font-size:10px;color:#6670aa" id="fluidDesc">Sistema estable. Sin entrada de fluido de formación.</div>
+      </div>
+    </div>
+
+    <div class="panel-title">Gradientes de Presión</div>
+
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-label">Presión por Profundidad (P/D)</div>
+      <div style="display:flex;align-items:flex-end;gap:4px;margin-top:7px">
+        <div id="gradBars" style="display:flex;align-items:flex-end;gap:3px;height:55px;flex:1"></div>
+        <div style="font-size:9px;color:#5560aa;line-height:1.7;margin-left:8px">
+          <div>⬆ 1,000ft</div><div>· 3,000ft</div><div>· 5,000ft</div><div>· 8,000ft</div><div>⬇ 10,000ft</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:#6670aa;margin-top:7px" id="gradLabel">Gradiente normal: 0.465 PSI/ft</div>
+    </div>
+
+    <div class="card" style="grid-column:1/-1">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="card-label">Estado del Sistema</div>
+          <div style="margin-top:5px;display:flex;align-items:center">
+            <span class="status-dot dot-green" id="statusDot"></span>
+            <span style="font-size:12px;font-weight:600" id="statusText">Circulación Normal</span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:9px;color:#5560aa">Válvulas BOP</div>
+          <div style="font-size:12px;font-weight:600;margin-top:3px" id="bopStatus">ABIERTAS</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel" id="rightPanel">
+    <div style="position:absolute;top:12px;left:16px;font-size:10px;color:#5560aa;letter-spacing:1px">SIMULACIÓN VISUAL</div>
+
+    <div class="pressure-ring" id="ring1" style="width:70px;height:70px;top:195px;left:50%;border-color:rgba(239,68,68,0.7)"></div>
+    <div class="pressure-ring" id="ring2" style="width:110px;height:110px;top:175px;left:50%;border-color:rgba(239,68,68,0.4)"></div>
+
+    <svg id="bopSvg" width="420" height="560" viewBox="0 0 420 560" style="overflow:visible">
+      <defs>
+        <linearGradient id="pipeGlass" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#1a2060" stop-opacity="0.9"/>
+          <stop offset="18%"  stop-color="#3a50c0" stop-opacity="0.5"/>
+          <stop offset="38%"  stop-color="#8ab0ff" stop-opacity="0.25"/>
+          <stop offset="50%"  stop-color="#c8e0ff" stop-opacity="0.15"/>
+          <stop offset="62%"  stop-color="#8ab0ff" stop-opacity="0.25"/>
+          <stop offset="82%"  stop-color="#3a50c0" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="#1a2060" stop-opacity="0.9"/>
+        </linearGradient>
+        <linearGradient id="pipeBorder" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#2a3480"/>
+          <stop offset="40%"  stop-color="#5060c0"/>
+          <stop offset="50%"  stop-color="#8090e0"/>
+          <stop offset="60%"  stop-color="#5060c0"/>
+          <stop offset="100%" stop-color="#2a3480"/>
+        </linearGradient>
+        <linearGradient id="pipeGlassKick" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#8a0000" stop-opacity="0.95"/>
+          <stop offset="18%"  stop-color="#cc1a1a" stop-opacity="0.6"/>
+          <stop offset="38%"  stop-color="#ff4040" stop-opacity="0.4"/>
+          <stop offset="50%"  stop-color="#ff5555" stop-opacity="0.35"/>
+          <stop offset="62%"  stop-color="#ff4040" stop-opacity="0.4"/>
+          <stop offset="82%"  stop-color="#cc1a1a" stop-opacity="0.6"/>
+          <stop offset="100%" stop-color="#8a0000" stop-opacity="0.95"/>
+        </linearGradient>
+        <linearGradient id="ramLeft" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#8a1010"/>
+          <stop offset="60%"  stop-color="#cc2020"/>
+          <stop offset="100%" stop-color="#e84030"/>
+        </linearGradient>
+        <linearGradient id="ramRight" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#e84030"/>
+          <stop offset="40%"  stop-color="#cc2020"/>
+          <stop offset="100%" stop-color="#8a1010"/>
+        </linearGradient>
+        <linearGradient id="ramLeftClosed" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#8a4000"/>
+          <stop offset="60%"  stop-color="#d06010"/>
+          <stop offset="100%" stop-color="#f08030"/>
+        </linearGradient>
+        <linearGradient id="ramRightClosed" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#f08030"/>
+          <stop offset="40%"  stop-color="#d06010"/>
+          <stop offset="100%" stop-color="#8a4000"/>
+        </linearGradient>
+        <linearGradient id="annularGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#cc1818"/>
+          <stop offset="100%" stop-color="#8a0808"/>
+        </linearGradient>
+        <linearGradient id="bopBody" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#1a1e40"/>
+          <stop offset="100%" stop-color="#0e1228"/>
+        </linearGradient>
+        <linearGradient id="fluidNormal" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%"   stop-color="#3a4fff" stop-opacity="0.7"/>
+          <stop offset="100%" stop-color="#7090ff" stop-opacity="0.3"/>
+        </linearGradient>
+        <linearGradient id="fluidKick" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%"   stop-color="#ff0202" stop-opacity="1"/>
+          <stop offset="15%"  stop-color="#ff1919" stop-opacity="0.98"/>
+          <stop offset="35%"  stop-color="#d60f0f" stop-opacity="0.88"/>
+          <stop offset="55%"  stop-color="#aa1010" stop-opacity="0.72"/>
+          <stop offset="75%"  stop-color="#ff4a4a" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#ff9a8a" stop-opacity="0.25"/>
+        </linearGradient>
+        <filter id="redGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur"/>
+          <feFlood flood-color="#ff3b3b" flood-opacity="0.65" result="color"/>
+          <feComposite in="color" in2="blur" operator="in" result="glow"/>
+          <feMerge>
+            <feMergeNode in="glow"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <linearGradient id="fluidControl" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%"   stop-color="#cc9000" stop-opacity="0.7"/>
+          <stop offset="100%" stop-color="#ffcc40" stop-opacity="0.3"/>
+        </linearGradient>
+        <linearGradient id="pipeBgKick" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%"   stop-color="#990000" stop-opacity="0.75"/>
+          <stop offset="35%"  stop-color="#cc0000" stop-opacity="0.55"/>
+          <stop offset="65%"  stop-color="#ff2020" stop-opacity="0.45"/>
+          <stop offset="100%" stop-color="#ff4040" stop-opacity="0.35"/>
+        </linearGradient>
+        <linearGradient id="wellhead" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#c8a030"/>
+          <stop offset="100%" stop-color="#806010"/>
+        </linearGradient>
+        <clipPath id="pipeClip">
+          <rect x="188" y="0" width="44" height="560"/>
+        </clipPath>
+        <clipPath id="pipeClipFull">
+          <rect x="192" y="0" width="36" height="560"/>
+        </clipPath>
+        <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+          <path d="M6,1 L1,3 L6,5" fill="none" stroke="#cc3030" stroke-width="1"/>
+        </marker>
+        <marker id="arr2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+          <path d="M0,1 L5,3 L0,5" fill="none" stroke="#cc3030" stroke-width="1"/>
+        </marker>
+      </defs>
+
+      <!-- Drill string above -->
+      <rect id="pipeTop" x="188" y="0" width="44" height="90" fill="url(#pipeGlass)" rx="1"/>
+      <rect x="188" y="0" width="44" height="90" fill="none" stroke="url(#pipeBorder)" stroke-width="1.5"/>
+      <!-- Tool joint -->
+      <rect x="182" y="22" width="56" height="18" fill="#2a3070" rx="2" stroke="#4a5090" stroke-width="1"/>
+      <text x="245" y="35" fill="#8890cc" font-size="9" font-family="Segoe UI" letter-spacing="1">Tool joint</text>
+      <!-- Drill floor -->
+      <line x1="80" y1="55" x2="340" y2="55" stroke="#4a5090" stroke-width="2"/>
+      <text x="80" y="50" fill="#6670aa" font-size="9" font-family="Segoe UI" letter-spacing="1">Drill floor</text>
+
+      <!-- Annular preventer -->
+      <rect x="148" y="65" width="124" height="44" fill="url(#bopBody)" rx="4" stroke="#3a4080" stroke-width="1.5"/>
+      <polygon id="annL" points="148,65 196,65 196,109 148,109" fill="url(#annularGrad)" opacity="0.9"/>
+      <polygon id="annR" points="272,65 224,65 224,109 272,109" fill="url(#annularGrad)" opacity="0.9"/>
+      <text x="295" y="92"  fill="#cc4040" font-size="9" font-family="Segoe UI">Annular</text>
+      <text x="295" y="104" fill="#cc4040" font-size="9" font-family="Segoe UI">preventer</text>
+      <line x1="272" y1="87" x2="292" y2="87" stroke="#cc4040" stroke-width="0.7" stroke-dasharray="3,2"/>
+      <text x="60" y="92" fill="#8890cc" font-size="10" font-family="Segoe UI" font-weight="600">BOP</text>
+      <line x1="100" y1="87" x2="148" y2="87" stroke="#6670aa" stroke-width="0.7" stroke-dasharray="3,2"/>
+
+      <!-- BOP main body -->
+      <rect x="140" y="109" width="140" height="220" fill="url(#bopBody)" rx="3" stroke="#3a4080" stroke-width="1.5"/>
+      <!-- Red background for pipe during kick (hidden by default) -->
+      <rect id="pipeBgKickRect" x="185" y="109" width="50" height="220" fill="url(#pipeBgKick)" opacity="0" rx="3"/>
+
+      <!-- BLIND RAM -->
+      <rect x="140" y="120" width="140" height="46" fill="rgba(10,12,30,0.8)" rx="2" stroke="#2a3070" stroke-width="1"/>
+      <rect id="blindL" x="100" y="124" width="88" height="38" fill="url(#ramLeft)"  rx="4" stroke="#ff4040" stroke-width="1"/>
+      <rect id="blindR" x="232" y="124" width="88" height="38" fill="url(#ramRight)" rx="4" stroke="#ff4040" stroke-width="1"/>
+      <rect id="blindLnotch" x="180" y="128" width="8" height="30" fill="#600808" rx="1"/>
+      <rect id="blindRnotch" x="232" y="128" width="8" height="30" fill="#600808" rx="1"/>
+      <text x="295" y="139" fill="#cc4040" font-size="9" font-family="Segoe UI">Blind ram</text>
+      <line x1="280" y1="143" x2="293" y2="143" stroke="#cc4040" stroke-width="0.7" stroke-dasharray="3,2"/>
+
+      <!-- SHEAR RAM -->
+      <rect x="140" y="178" width="140" height="46" fill="rgba(10,12,30,0.8)" rx="2" stroke="#2a3070" stroke-width="1"/>
+      <rect id="shearL" x="100" y="182" width="88" height="38" fill="url(#ramLeft)"  rx="4" stroke="#ff4040" stroke-width="1"/>
+      <rect id="shearR" x="232" y="182" width="88" height="38" fill="url(#ramRight)" rx="4" stroke="#ff4040" stroke-width="1"/>
+      <path id="shearLtooth" d="M180,186 L188,182 L188,186Z" fill="#800"/>
+      <path id="shearRtooth" d="M240,186 L232,182 L232,186Z" fill="#800"/>
+      <text x="295" y="197" fill="#cc4040" font-size="9" font-family="Segoe UI">Shear ram</text>
+      <line x1="280" y1="201" x2="293" y2="201" stroke="#cc4040" stroke-width="0.7" stroke-dasharray="3,2"/>
+
+      <!-- PIPE RAM -->
+      <rect x="140" y="236" width="140" height="46" fill="rgba(10,12,30,0.8)" rx="2" stroke="#2a3070" stroke-width="1"/>
+      <rect id="pipeRamL" x="100" y="240" width="88" height="38" fill="url(#ramLeft)"  rx="4" stroke="#ff4040" stroke-width="1"/>
+      <rect id="pipeRamR" x="232" y="240" width="88" height="38" fill="url(#ramRight)" rx="4" stroke="#ff4040" stroke-width="1"/>
+      <path id="pipeRamLcutout" d="M188,244 Q188,271 188,271 L180,271 L180,244Z" fill="#600808"/>
+      <path id="pipeRamRcutout" d="M232,244 Q232,271 232,271 L240,271 L240,244Z" fill="#600808"/>
+      <text x="295" y="255" fill="#cc4040" font-size="9" font-family="Segoe UI">Pipe ram</text>
+      <line x1="280" y1="259" x2="293" y2="259" stroke="#cc4040" stroke-width="0.7" stroke-dasharray="3,2"/>
+
+      <!-- Hydraulic actuator arrows -->
+      <line x1="100" y1="143" x2="82" y2="143" stroke="#cc3030" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="100" y1="201" x2="82" y2="201" stroke="#cc3030" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="100" y1="259" x2="82" y2="259" stroke="#cc3030" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="320" y1="143" x2="338" y2="143" stroke="#cc3030" stroke-width="1.5" marker-end="url(#arr2)"/>
+      <line x1="320" y1="201" x2="338" y2="201" stroke="#cc3030" stroke-width="1.5" marker-end="url(#arr2)"/>
+      <line x1="320" y1="259" x2="338" y2="259" stroke="#cc3030" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+      <!-- Fluid fill (inside pipe, crystal) -->
+      <rect id="fluidFill" x="192" y="0" width="36" height="560" fill="url(#fluidNormal)" clip-path="url(#pipeClipFull)" opacity="0.85"/>
+      <!-- Pipe glass overlay -->
+      <rect id="pipeMain" x="188" y="0" width="44" height="560" fill="url(#pipeGlass)" clip-path="url(#pipeClip)" opacity="0.75"/>
+      <!-- Pipe border lines -->
+      <line x1="188" y1="0" x2="188" y2="560" stroke="url(#pipeBorder)" stroke-width="1.5"/>
+      <line x1="232" y1="0" x2="232" y2="560" stroke="url(#pipeBorder)" stroke-width="1.5"/>
+      <!-- Specular highlight -->
+      <rect x="200" y="0" width="6" height="560" fill="white" opacity="0.06"/>
+
+      <!-- Wellhead / Casing -->
+      <rect x="158" y="329" width="104" height="18" fill="url(#wellhead)" rx="2" stroke="#a07820" stroke-width="1"/>
+      <rect x="148" y="347" width="124" height="14" fill="url(#wellhead)" rx="2" stroke="#a07820" stroke-width="1"/>
+      <text x="295" y="343" fill="#c0962a" font-size="9" font-family="Segoe UI">Wellhead/</text>
+      <text x="295" y="355" fill="#c0962a" font-size="9" font-family="Segoe UI">casing</text>
+      <line x1="272" y1="347" x2="293" y2="347" stroke="#c0962a" stroke-width="0.7" stroke-dasharray="3,2"/>
+
+      <!-- Pipe below wellhead -->
+      <rect id="pipeBottom" x="188" y="361" width="44" height="199" fill="url(#pipeGlass)" opacity="0.5"/>
+      <line x1="188" y1="361" x2="188" y2="560" stroke="#2a3480" stroke-width="1.2"/>
+      <line x1="232" y1="361" x2="232" y2="560" stroke="#2a3480" stroke-width="1.2"/>
+
+      <!-- Ground line -->
+      <line x1="60" y1="380" x2="360" y2="380" stroke="#5a4010" stroke-width="2" stroke-dasharray="6,4"/>
+      <text x="60" y="395" fill="#7a5818" font-size="9" font-family="Segoe UI">Ground</text>
+      <rect x="60" y="380" width="300" height="180" fill="rgba(60,30,5,0.25)" rx="3"/>
+      <text x="210" y="420" fill="rgba(160,100,30,0.4)" font-size="9" font-family="Segoe UI" text-anchor="middle" letter-spacing="2">FORMACIÓN · 10,000 ft</text>
+
+      <!-- Depth scale -->
+      <line x1="72" y1="65" x2="72" y2="380" stroke="#2a3060" stroke-width="1" stroke-dasharray="2,4"/>
+      <text x="68" y="68"  fill="#3a4070" font-size="8" font-family="Segoe UI" text-anchor="end">0</text>
+      <text x="68" y="200" fill="#3a4070" font-size="8" font-family="Segoe UI" text-anchor="end">5k</text>
+      <text x="68" y="382" fill="#3a4070" font-size="8" font-family="Segoe UI" text-anchor="end">10k</text>
+      <text x="68" y="393" fill="#3a4070" font-size="7" font-family="Segoe UI" text-anchor="end">ft</text>
+    </svg>
+
+    <!-- Fluid particles canvas -->
+    <canvas id="fluidCanvas" style="position:absolute;pointer-events:none"></canvas>
+
+    <div class="scenario-timer" id="timerLabel">Escenario 1/3</div>
+    <div class="timer-bar" id="timerBar" style="width:0%"></div>
+  </div>
+</div>
+
+<script>
+// ── Canvas positioning ─────────────────────────────────────────
+function positionCanvas() {
+  const svg   = document.getElementById('bopSvg');
+  const rect  = svg.getBoundingClientRect();
+  const scaleX = rect.width  / 420;
+  const scaleY = rect.height / 560;
+  const panel  = document.getElementById('rightPanel').getBoundingClientRect();
+  const c = document.getElementById('fluidCanvas');
+  c.style.left = (rect.left - panel.left + 192 * scaleX) + 'px';
+  c.style.top  = (rect.top  - panel.top)  + 'px';
+  c.width  = Math.round(36 * scaleX);
+  c.height = Math.round(330 * scaleY);
+  return c;
+}
+
+let canvas, ctx, W, H;
+function initCanvas() {
+  canvas = positionCanvas();
+  ctx = canvas.getContext('2d');
+  W = canvas.width; H = canvas.height;
+}
+window.addEventListener('resize', () => { initCanvas(); initParticles(); });
+setTimeout(initCanvas, 120);
+
+// ── Particles ─────────────────────────────────────────────────
+let particles = [];
+let flowSpeed = 1.0, flowActive = true;
+let particleColor = '#6080ff';
+
+function createParticle() {
+  return {
+    x: (W||20)/2 + (Math.random()-.5)*(W||20)*.5,
+    y: H||300,
+    vy: -(flowSpeed + Math.random()*flowSpeed*.6),
+    r:  1.5 + Math.random()*2.5,
+    alpha: .6 + Math.random()*.4,
+    wobble: Math.random()*Math.PI*2,
+    ws: .04 + Math.random()*.04
+  };
+}
+function initParticles() {
+  particles = [];
+  for (let i=0;i<35;i++) { const p=createParticle(); p.y=Math.random()*(H||300); particles.push(p); }
+}
+setTimeout(initParticles, 160);
+
+let audioContext;
+let alertPlayed = false;
+let closePlayed = false;
+
+async function initAudio() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioContext.state === 'suspended') {
+    await audioContext.resume();
+  }
+}
+
+function playAlertSound() {
+  initAudio().then(() => {
+    const interval = 280;
+    let count = 0;
+
+    function beep() {
+      if (count >= 4) return;
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(840, audioContext.currentTime);
+      gain.gain.setValueAtTime(0.25, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.18);
+      osc.start(audioContext.currentTime);
+      osc.stop(audioContext.currentTime + 0.18);
+      count += 1;
+      if (count < 4) {
+        setTimeout(beep, interval);
+      }
+    }
+
+    beep();
+  }).catch(err => {
+    console.log('Audio no disponible:', err);
+  });
+}
+
+function playCloseSound() {
+  initAudio().then(() => {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(320, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(120, audioContext.currentTime + 0.45);
+    gain.gain.setValueAtTime(0.28, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.45);
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.45);
+  }).catch(err => {
+    console.log('Audio no disponible:', err);
+  });
+}
+
+function animateFluid() {
+  if (!ctx) { requestAnimationFrame(animateFluid); return; }
+  ctx.clearRect(0,0,W,H);
+  if (flowActive && particles.length) {
+    if (particles.length < 50) particles.push(createParticle());
+    particles.forEach((p,i) => {
+      p.wobble += p.ws;
+      p.x = W/2 + Math.sin(p.wobble)*W*.22;
+      p.y += p.vy; p.alpha -= .004;
+      if (p.y<0 || p.alpha<=0) { particles[i]=createParticle(); return; }
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      const g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);
+      g.addColorStop(0,particleColor+'ee'); g.addColorStop(1,particleColor+'00');
+      ctx.fillStyle=g; ctx.globalAlpha=p.alpha; ctx.fill(); ctx.globalAlpha=1;
+    });
+  }
+  requestAnimationFrame(animateFluid);
+}
+animateFluid();
+
+// ── Gradient bars ──────────────────────────────────────────────
+function renderGradBars(vals, color) {
+  const c = document.getElementById('gradBars');
+  c.innerHTML = '';
+  vals.forEach((v,i) => {
+    const pct = Math.min(100, v/12000*100);
+    const b = document.createElement('div');
+    b.style.cssText = `width:26px;height:${Math.max(3,pct*.55)}px;border-radius:3px 3px 0 0;background:${color};opacity:${.45+i*.11};transition:height .8s,background .5s`;
+    c.appendChild(b);
+  });
+}
+
+// ── RAM animation ──────────────────────────────────────────────
+function setRams(closed) {
+  const shift = closed ? 40 : 0;
+  ['blindL','shearL','pipeRamL'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.transition = 'transform .9s cubic-bezier(.4,0,.2,1)';
+    el.style.transform  = `translateX(${shift}px)`;
+    el.setAttribute('fill', closed ? 'url(#ramLeftClosed)' : 'url(#ramLeft)');
+  });
+  ['blindR','shearR','pipeRamR'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.transition = 'transform .9s cubic-bezier(.4,0,.2,1)';
+    el.style.transform  = `translateX(${-shift}px)`;
+    el.setAttribute('fill', closed ? 'url(#ramRightClosed)' : 'url(#ramRight)');
+  });
+  ['blindLnotch','pipeRamLcutout','shearLtooth'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.transition='transform .9s'; el.style.transform=`translateX(${shift}px)`; }
+  });
+  ['blindRnotch','pipeRamRcutout','shearRtooth'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.transition='transform .9s'; el.style.transform=`translateX(${-shift}px)`; }
+  });
+}
+
+function setFluidGrad(sc) {
+  const ff = document.getElementById('fluidFill');
+  const pt = document.getElementById('pipeTop');
+  const pm = document.getElementById('pipeMain');
+  const pb = document.getElementById('pipeBottom');
+  const pbg = document.getElementById('pipeBgKickRect');
+  if (!ff) return;
+  ff.setAttribute('fill', sc===0 ? 'url(#fluidNormal)' : sc===1 ? 'url(#fluidKick)' : 'url(#fluidControl)');
+  ff.setAttribute('opacity', sc===1 ? '0.96' : sc===2 ? '0.6' : '0.85');
+  ff.setAttribute('filter', sc===1 ? 'url(#redGlow)' : '');
+  // Change pipe background to red during kick scenario
+  const pipeGrad = sc===1 ? 'url(#pipeGlassKick)' : 'url(#pipeGlass)';
+  if (pt) pt.setAttribute('fill', pipeGrad);
+  if (pm) pm.setAttribute('fill', pipeGrad);
+  if (pb) pb.setAttribute('fill', pipeGrad);
+  // Show red background in BOP section during kick
+  if (pbg) pbg.setAttribute('opacity', sc===1 ? '0.65' : '0');
+}
+
+// ── Scenarios ──────────────────────────────────────────────────
+const scenarios = [
+  { id:0, name:'Pozo Estable',   badge:'badge-stable',  badgeText:'● Pozo Estable',
+    dur:8000, sidpp:[1100,1800], sicp:[1200,2000], pf:[1800,3000],
+    speed:.9, pColor:'#5070ff',
+    fbClass:'badge-none', fbText:'— Sin Influjo', fdesc:'Sistema estable. Sin entrada de fluido de formación.',
+    cSIDPP:'safe',cSICP:'safe',cPF:'safe',cVol:'safe',
+    dot:'dot-green', status:'Circulación Normal', bop:'ABIERTAS', closed:false, gc:'#6366f1' },
+  { id:1, name:'Brote / Kick',   badge:'badge-kick',    badgeText:'⚠ BROTE — KICK',
+    dur:9000, sidpp:[3500,10500], sicp:[4000,11000], pf:[5000,14000],
+    speed:4.0, pColor:'#ff1212',
+    fbClass:'badge-gas', fbText:'⚡ GAS — Activo', fdesc:'ALERTA CRÍTICA: Influjo de gas. Presiones en ascenso rápido.',
+    cSIDPP:'alert',cSICP:'alert',cPF:'alert',cVol:'alert',
+    dot:'dot-red', status:'¡BROTE DETECTADO!', bop:'ABIERTAS', closed:false, gc:'#f87171' },
+  { id:2, name:'Control/Cierre', badge:'badge-control', badgeText:'↓ Estabilizando...',
+    dur:9000, sidpp:[400,2200], sicp:[500,2400], pf:[1200,2800],
+    speed:0, pColor:'#cc9020',
+    fbClass:'badge-agua', fbText:'↓ Flujo Detenido', fdesc:'BOP CERRADO. Presiones estabilizándose. Cierre exitoso.',
+    cSIDPP:'warn',cSICP:'warn',cPF:'warn',cVol:'warn',
+    dot:'dot-yellow', status:'Cierre en Progreso', bop:'CERRADAS ✔', closed:true, gc:'#fbbf24' }
+];
+
+let cur = 0, scStart = Date.now(), kickVol = 0;
+
+function applyScenario(sc) {
+  document.getElementById('scenarioBadge').className   = 'scenario-badge '+sc.badge;
+  document.getElementById('scenarioBadge').textContent = sc.badgeText;
+  document.getElementById('statusDot').className       = 'status-dot '+sc.dot;
+  document.getElementById('statusText').textContent    = sc.status;
+  document.getElementById('bopStatus').textContent     = sc.bop;
+  document.getElementById('fluidBadge').className      = 'fluid-badge '+sc.fbClass;
+  document.getElementById('fluidBadge').textContent    = sc.fbText;
+  document.getElementById('fluidDesc').textContent     = sc.fdesc;
+  document.getElementById('timerLabel').textContent    = `Escenario ${sc.id+1}/3 · ${sc.name}`;
+
+  const r1=document.getElementById('ring1'), r2=document.getElementById('ring2');
+  if (sc.id===1) { r1.classList.add('active'); r2.classList.add('active'); }
+  else           { r1.classList.remove('active'); r2.classList.remove('active'); }
+
+  ['SIDPP','SICP','PF','Vol'].forEach(k => {
+    document.getElementById('card'+k).className = 'card '+(sc['c'+k]||'');
+  });
+
+  flowSpeed = sc.speed;
+  particleColor = sc.pColor;
+  flowActive = sc.speed > 0;
+  if (sc.id===0) kickVol = 0;
+
+  if (sc.id === 1 && !alertPlayed) {
+    playAlertSound();
+    playFlowSound();
+    alertPlayed = true;
+  } else if (sc.id !== 1) {
+    alertPlayed = false;
+  }
+
+  if (sc.id === 2 && !closePlayed) {
+    playCloseSound();
+    closePlayed = true;
+  } else if (sc.id !== 2) {
+    closePlayed = false;
+  }
+
+  setRams(sc.closed);
+  setFluidGrad(sc.id);
+}
+
+function lerp(a,b,t){ return a+(b-a)*t; }
+
+function tick() {
+  const sc = scenarios[cur];
+  const el = Date.now() - scStart;
+  const t  = Math.min(1, el / sc.dur);
+
+  let sidpp, sicp, pf, vol;
+
+  if (sc.id===0) {
+    sidpp = lerp(sc.sidpp[0],sc.sidpp[1],.5)+Math.sin(el/1200)*80+Math.random()*40-20;
+    sicp  = lerp(sc.sicp[0],sc.sicp[1],.5)+Math.sin(el/1000)*60;
+    pf    = lerp(sc.pf[0],sc.pf[1],.5)+Math.sin(el/1500)*100;
+    vol   = 0;
+  } else if (sc.id===1) {
+    const r = Math.pow(t,.7);
+    sidpp = lerp(sc.sidpp[0],sc.sidpp[1],r)+Math.random()*200-100;
+    sicp  = lerp(sc.sicp[0],sc.sicp[1],r)+Math.random()*250-125;
+    pf    = lerp(sc.pf[0],sc.pf[1],r)+Math.random()*300-150;
+    kickVol += .12; vol = kickVol;
+    if (Math.floor(el/3000)%2===0) {
+      document.getElementById('fluidBadge').className   = 'fluid-badge badge-gas';
+      document.getElementById('fluidBadge').textContent = '⚡ GAS — Influjo Activo';
+    } else {
+      document.getElementById('fluidBadge').className   = 'fluid-badge badge-agua';
+      document.getElementById('fluidBadge').textContent = '💧 AGUA — Influjo Activo';
+    }
+  } else {
+    const r = Math.pow(t,.5);
+    sidpp = lerp(scenarios[1].sidpp[1]*.6,sc.sidpp[1],r)+Math.random()*100-50;
+    sicp  = lerp(scenarios[1].sicp[1]*.6,sc.sicp[1],r)+Math.random()*80-40;
+    pf    = lerp(scenarios[1].pf[1]*.55,sc.pf[1],r)+Math.random()*120-60;
+    kickVol = Math.max(0,kickVol-.05); vol = kickVol;
+    if (t>.6) flowActive = false;
+  }
+
+  sidpp = Math.max(100, Math.round(sidpp));
+  sicp  = Math.max(100, Math.round(sicp));
+  pf    = Math.max(200, Math.round(pf));
+  vol   = Math.max(0, Math.round(vol*10)/10);
+  const mx = 12000;
+
+  document.getElementById('valSIDPP').textContent = sidpp.toLocaleString();
+  document.getElementById('valSICP').textContent  = sicp.toLocaleString();
+  document.getElementById('valPF').textContent    = pf.toLocaleString();
+  document.getElementById('valVol').textContent   = vol.toFixed(1);
+
+  document.getElementById('pbSIDPP').style.width = Math.min(100,sidpp/mx*100)+'%';
+  document.getElementById('pbSICP').style.width  = Math.min(100,sicp/mx*100)+'%';
+  document.getElementById('pbPF').style.width    = Math.min(100,pf/mx*100)+'%';
+  document.getElementById('pbVol').style.width   = Math.min(100,vol/100*100)+'%';
+
+  document.getElementById('valSIDPP').className = 'card-value '+(sc.id===1?'val-red':sc.id===2?'val-yellow':'val-green');
+  document.getElementById('valSICP').className  = 'card-value '+(sc.id===1?'val-red':sc.id===2?'val-yellow':'val-blue');
+  document.getElementById('valPF').className    = 'card-value val-magenta';
+  document.getElementById('valVol').className   = 'card-value '+(vol>0?'val-red':'val-white');
+
+  renderGradBars([sidpp*.1,sidpp*.35,sidpp*.6,sidpp*.85,pf], sc.gc);
+  document.getElementById('gradLabel').textContent =
+    sc.id===0 ? 'Gradiente normal: 0.465 PSI/ft' :
+    sc.id===1 ? `Gradiente anormal: ${(pf/10000).toFixed(3)} PSI/ft — PELIGROSO` :
+                `Gradiente estabilizando: ${(pf/10000).toFixed(3)} PSI/ft`;
+
+  document.getElementById('timerBar').style.width = (t*100)+'%';
+
+  if (el >= sc.dur) { cur=(cur+1)%3; scStart=Date.now(); applyScenario(scenarios[cur]); }
+}
+
+applyScenario(scenarios[0]);
+renderGradBars([120,420,700,1000,2100],'#6366f1');
+document.addEventListener('click', () => { initAudio(); }, { once: true });
+setInterval(tick, 150);
+</script>
+</body>
+</html>
