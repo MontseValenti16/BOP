@@ -46,31 +46,32 @@
   .badge-kick    { background:rgba(239,68,68,0.15);  color:#f87171; border:1px solid rgba(239,68,68,0.4); }
   .badge-control { background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.4); }
 
-  .main { display:grid; grid-template-columns:340px 1fr; height:calc(100vh - 66px); }
+  /* Panel izquierdo más ancho */
+  .main { display:grid; grid-template-columns:480px 1fr; height:calc(100vh - 66px); }
 
   .left-panel {
     background:linear-gradient(180deg,rgba(10,13,30,0.98),rgba(14,18,45,0.98));
     border-right:1px solid rgba(100,80,220,0.2);
-    padding:16px 14px; overflow-y:auto;
-    display:grid; grid-template-columns:1fr 1fr; gap:10px; align-content:start;
+    padding:16px 18px; overflow-y:auto;
+    display:grid; grid-template-columns:1fr 1fr; gap:12px; align-content:start;
   }
   .card {
     background:rgba(255,255,255,0.04);
     backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
     border:1px solid rgba(255,255,255,0.1); border-radius:13px;
-    padding:12px 14px; position:relative; overflow:hidden; transition:all 0.4s;
+    padding:14px 16px; position:relative; overflow:hidden; transition:all 0.4s;
   }
   .card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,0.05),transparent 60%); pointer-events:none; }
   .card.alert { border-color:rgba(239,68,68,0.5); box-shadow:0 0 18px rgba(239,68,68,0.15); }
   .card.warn  { border-color:rgba(251,191,36,0.5); box-shadow:0 0 18px rgba(251,191,36,0.12); }
   .card.safe  { border-color:rgba(34,197,94,0.4);  box-shadow:0 0 14px rgba(34,197,94,0.1); }
-  .card-label { font-size:9px; color:#8890cc; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:3px; }
-  .card-value { font-size:20px; font-weight:700; transition:color 0.4s; }
-  .card-unit  { font-size:10px; color:#6670aa; margin-top:1px; }
+  .card-label { font-size:10px; color:#8890cc; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:4px; }
+  .card-value { font-size:24px; font-weight:700; transition:color 0.4s; }
+  .card-unit  { font-size:11px; color:#6670aa; margin-top:2px; }
   .val-green  { color:#4ade80; } .val-red    { color:#f87171; }
   .val-yellow { color:#fbbf24; } .val-blue   { color:#60a5fa; }
   .val-magenta{ color:#e879f9; } .val-white  { color:#f0f0ff; }
-  .progress-bar { height:3px; border-radius:2px; background:rgba(255,255,255,0.08); margin-top:7px; overflow:hidden; }
+  .progress-bar { height:4px; border-radius:2px; background:rgba(255,255,255,0.08); margin-top:8px; overflow:hidden; }
   .progress-fill { height:100%; border-radius:2px; transition:width 0.8s,background 0.4s; }
   .panel-title {
     grid-column:1/-1; font-size:10px; letter-spacing:2px; text-transform:uppercase;
@@ -94,7 +95,6 @@
     position:relative; overflow:hidden;
   }
 
-  .timer-bar { position:absolute; bottom:0; left:0; height:3px; background:linear-gradient(90deg,#a855f7,#6366f1); transition:width .3s linear; }
   .scenario-timer { position:absolute; bottom:10px; right:16px; font-size:10px; color:#5560aa; letter-spacing:1px; }
 
   @keyframes ring-pulse {
@@ -154,7 +154,7 @@
       <div class="card-label">Tipo de Influjo</div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:5px">
         <span class="fluid-badge badge-none" id="fluidBadge">— Sin Influjo</span>
-        <div style="flex:1;font-size:10px;color:#6670aa" id="fluidDesc">Sistema estable. Sin entrada de fluido de formación.</div>
+        <div style="flex:1;font-size:11px;color:#6670aa" id="fluidDesc">Sistema estable. Sin entrada de fluido de formación.</div>
       </div>
     </div>
 
@@ -163,12 +163,12 @@
     <div class="card" style="grid-column:1/-1">
       <div class="card-label">Presión por Profundidad (P/D)</div>
       <div style="display:flex;align-items:flex-end;gap:4px;margin-top:7px">
-        <div id="gradBars" style="display:flex;align-items:flex-end;gap:3px;height:55px;flex:1"></div>
-        <div style="font-size:9px;color:#5560aa;line-height:1.7;margin-left:8px">
+        <div id="gradBars" style="display:flex;align-items:flex-end;gap:4px;height:60px;flex:1"></div>
+        <div style="font-size:9px;color:#5560aa;line-height:1.7;margin-left:10px">
           <div>⬆ 1,000ft</div><div>· 3,000ft</div><div>· 5,000ft</div><div>· 8,000ft</div><div>⬇ 10,000ft</div>
         </div>
       </div>
-      <div style="font-size:10px;color:#6670aa;margin-top:7px" id="gradLabel">Gradiente normal: 0.465 PSI/ft</div>
+      <div style="font-size:10px;color:#6670aa;margin-top:8px" id="gradLabel">Gradiente normal: 0.465 PSI/ft</div>
     </div>
 
     <div class="card" style="grid-column:1/-1">
@@ -177,12 +177,12 @@
           <div class="card-label">Estado del Sistema</div>
           <div style="margin-top:5px;display:flex;align-items:center">
             <span class="status-dot dot-green" id="statusDot"></span>
-            <span style="font-size:12px;font-weight:600" id="statusText">Circulación Normal</span>
+            <span style="font-size:13px;font-weight:600" id="statusText">Circulación Normal</span>
           </div>
         </div>
         <div style="text-align:right">
           <div style="font-size:9px;color:#5560aa">Válvulas BOP</div>
-          <div style="font-size:12px;font-weight:600;margin-top:3px" id="bopStatus">ABIERTAS</div>
+          <div style="font-size:13px;font-weight:600;margin-top:3px" id="bopStatus">ABIERTAS</div>
         </div>
       </div>
     </div>
@@ -321,7 +321,6 @@
 
       <!-- BOP main body -->
       <rect x="140" y="109" width="140" height="220" fill="url(#bopBody)" rx="3" stroke="#3a4080" stroke-width="1.5"/>
-      <!-- Red background for pipe during kick (hidden by default) -->
       <rect id="pipeBgKickRect" x="185" y="109" width="50" height="220" fill="url(#pipeBgKick)" opacity="0" rx="3"/>
 
       <!-- BLIND RAM -->
@@ -359,7 +358,7 @@
       <line x1="320" y1="201" x2="338" y2="201" stroke="#cc3030" stroke-width="1.5" marker-end="url(#arr2)"/>
       <line x1="320" y1="259" x2="338" y2="259" stroke="#cc3030" stroke-width="1.5" marker-end="url(#arr2)"/>
 
-      <!-- Fluid fill (inside pipe, crystal) -->
+      <!-- Fluid fill -->
       <rect id="fluidFill" x="192" y="0" width="36" height="560" fill="url(#fluidNormal)" clip-path="url(#pipeClipFull)" opacity="0.85"/>
       <!-- Pipe glass overlay -->
       <rect id="pipeMain" x="188" y="0" width="44" height="560" fill="url(#pipeGlass)" clip-path="url(#pipeClip)" opacity="0.75"/>
@@ -395,16 +394,13 @@
       <text x="68" y="393" fill="#3a4070" font-size="7" font-family="Segoe UI" text-anchor="end">ft</text>
     </svg>
 
-    <!-- Fluid particles canvas -->
     <canvas id="fluidCanvas" style="position:absolute;pointer-events:none"></canvas>
 
     <div class="scenario-timer" id="timerLabel">Escenario 1/3</div>
-    <div class="timer-bar" id="timerBar" style="width:0%"></div>
   </div>
 </div>
 
 <script>
-// ── Canvas positioning ─────────────────────────────────────────
 function positionCanvas() {
   const svg   = document.getElementById('bopSvg');
   const rect  = svg.getBoundingClientRect();
@@ -428,7 +424,6 @@ function initCanvas() {
 window.addEventListener('resize', () => { initCanvas(); initParticles(); });
 setTimeout(initCanvas, 120);
 
-// ── Particles ─────────────────────────────────────────────────
 let particles = [];
 let flowSpeed = 1.0, flowActive = true;
 let particleColor = '#6080ff';
@@ -467,7 +462,6 @@ function playAlertSound() {
   initAudio().then(() => {
     const interval = 280;
     let count = 0;
-
     function beep() {
       if (count >= 4) return;
       const osc = audioContext.createOscillator();
@@ -481,15 +475,10 @@ function playAlertSound() {
       osc.start(audioContext.currentTime);
       osc.stop(audioContext.currentTime + 0.18);
       count += 1;
-      if (count < 4) {
-        setTimeout(beep, interval);
-      }
+      if (count < 4) setTimeout(beep, interval);
     }
-
     beep();
-  }).catch(err => {
-    console.log('Audio no disponible:', err);
-  });
+  }).catch(err => console.log('Audio no disponible:', err));
 }
 
 function playCloseSound() {
@@ -505,9 +494,7 @@ function playCloseSound() {
     gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.45);
     osc.start(audioContext.currentTime);
     osc.stop(audioContext.currentTime + 0.45);
-  }).catch(err => {
-    console.log('Audio no disponible:', err);
-  });
+  }).catch(err => console.log('Audio no disponible:', err));
 }
 
 function animateFluid() {
@@ -530,7 +517,6 @@ function animateFluid() {
 }
 animateFluid();
 
-// ── Gradient bars ──────────────────────────────────────────────
 function renderGradBars(vals, color) {
   const c = document.getElementById('gradBars');
   c.innerHTML = '';
@@ -542,72 +528,73 @@ function renderGradBars(vals, color) {
   });
 }
 
-// ── RAM animation ──────────────────────────────────────────────
-function setRams(closed) {
+// RAM animation — escenario 3 usa transición lenta (6s)
+function setRams(closed, slow) {
   const shift = closed ? 40 : 0;
+  const dur   = slow ? '6s' : '0.9s';
+  const ease  = slow ? 'cubic-bezier(0.1,0,0.3,1)' : 'cubic-bezier(.4,0,.2,1)';
+
   ['blindL','shearL','pipeRamL'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.style.transition = 'transform .9s cubic-bezier(.4,0,.2,1)';
+    el.style.transition = `transform ${dur} ${ease}`;
     el.style.transform  = `translateX(${shift}px)`;
     el.setAttribute('fill', closed ? 'url(#ramLeftClosed)' : 'url(#ramLeft)');
   });
   ['blindR','shearR','pipeRamR'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.style.transition = 'transform .9s cubic-bezier(.4,0,.2,1)';
+    el.style.transition = `transform ${dur} ${ease}`;
     el.style.transform  = `translateX(${-shift}px)`;
     el.setAttribute('fill', closed ? 'url(#ramRightClosed)' : 'url(#ramRight)');
   });
   ['blindLnotch','pipeRamLcutout','shearLtooth'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) { el.style.transition='transform .9s'; el.style.transform=`translateX(${shift}px)`; }
+    if (el) { el.style.transition=`transform ${dur} ${ease}`; el.style.transform=`translateX(${shift}px)`; }
   });
   ['blindRnotch','pipeRamRcutout','shearRtooth'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) { el.style.transition='transform .9s'; el.style.transform=`translateX(${-shift}px)`; }
+    if (el) { el.style.transition=`transform ${dur} ${ease}`; el.style.transform=`translateX(${-shift}px)`; }
   });
 }
 
 function setFluidGrad(sc) {
-  const ff = document.getElementById('fluidFill');
-  const pt = document.getElementById('pipeTop');
-  const pm = document.getElementById('pipeMain');
-  const pb = document.getElementById('pipeBottom');
+  const ff  = document.getElementById('fluidFill');
+  const pt  = document.getElementById('pipeTop');
+  const pm  = document.getElementById('pipeMain');
+  const pb  = document.getElementById('pipeBottom');
   const pbg = document.getElementById('pipeBgKickRect');
   if (!ff) return;
   ff.setAttribute('fill', sc===0 ? 'url(#fluidNormal)' : sc===1 ? 'url(#fluidKick)' : 'url(#fluidControl)');
   ff.setAttribute('opacity', sc===1 ? '0.96' : sc===2 ? '0.6' : '0.85');
   ff.setAttribute('filter', sc===1 ? 'url(#redGlow)' : '');
-  // Change pipe background to red during kick scenario
   const pipeGrad = sc===1 ? 'url(#pipeGlassKick)' : 'url(#pipeGlass)';
   if (pt) pt.setAttribute('fill', pipeGrad);
   if (pm) pm.setAttribute('fill', pipeGrad);
   if (pb) pb.setAttribute('fill', pipeGrad);
-  // Show red background in BOP section during kick
   if (pbg) pbg.setAttribute('opacity', sc===1 ? '0.65' : '0');
 }
 
-// ── Scenarios ──────────────────────────────────────────────────
+// ── Escenarios — 30 segundos cada uno ─────────────────────────
 const scenarios = [
   { id:0, name:'Pozo Estable',   badge:'badge-stable',  badgeText:'● Pozo Estable',
-    dur:8000, sidpp:[1100,1800], sicp:[1200,2000], pf:[1800,3000],
+    dur:30000, sidpp:[1100,1800], sicp:[1200,2000], pf:[1800,3000],
     speed:.9, pColor:'#5070ff',
     fbClass:'badge-none', fbText:'— Sin Influjo', fdesc:'Sistema estable. Sin entrada de fluido de formación.',
     cSIDPP:'safe',cSICP:'safe',cPF:'safe',cVol:'safe',
-    dot:'dot-green', status:'Circulación Normal', bop:'ABIERTAS', closed:false, gc:'#6366f1' },
+    dot:'dot-green', status:'Circulación Normal', bop:'ABIERTAS', closed:false, slow:false, gc:'#6366f1' },
   { id:1, name:'Brote / Kick',   badge:'badge-kick',    badgeText:'⚠ BROTE — KICK',
-    dur:9000, sidpp:[3500,10500], sicp:[4000,11000], pf:[5000,14000],
+    dur:30000, sidpp:[3500,10500], sicp:[4000,11000], pf:[5000,14000],
     speed:4.0, pColor:'#ff1212',
     fbClass:'badge-gas', fbText:'⚡ GAS — Activo', fdesc:'ALERTA CRÍTICA: Influjo de gas. Presiones en ascenso rápido.',
     cSIDPP:'alert',cSICP:'alert',cPF:'alert',cVol:'alert',
-    dot:'dot-red', status:'¡BROTE DETECTADO!', bop:'ABIERTAS', closed:false, gc:'#f87171' },
+    dot:'dot-red', status:'¡BROTE DETECTADO!', bop:'ABIERTAS', closed:false, slow:false, gc:'#f87171' },
   { id:2, name:'Control/Cierre', badge:'badge-control', badgeText:'↓ Estabilizando...',
-    dur:9000, sidpp:[400,2200], sicp:[500,2400], pf:[1200,2800],
+    dur:30000, sidpp:[400,2200], sicp:[500,2400], pf:[1200,2800],
     speed:0, pColor:'#cc9020',
     fbClass:'badge-agua', fbText:'↓ Flujo Detenido', fdesc:'BOP CERRADO. Presiones estabilizándose. Cierre exitoso.',
     cSIDPP:'warn',cSICP:'warn',cPF:'warn',cVol:'warn',
-    dot:'dot-yellow', status:'Cierre en Progreso', bop:'CERRADAS ✔', closed:true, gc:'#fbbf24' }
+    dot:'dot-yellow', status:'Cierre en Progreso', bop:'CERRADAS ✔', closed:true, slow:true, gc:'#fbbf24' }
 ];
 
 let cur = 0, scStart = Date.now(), kickVol = 0;
@@ -638,7 +625,6 @@ function applyScenario(sc) {
 
   if (sc.id === 1 && !alertPlayed) {
     playAlertSound();
-    playFlowSound();
     alertPlayed = true;
   } else if (sc.id !== 1) {
     alertPlayed = false;
@@ -651,7 +637,7 @@ function applyScenario(sc) {
     closePlayed = false;
   }
 
-  setRams(sc.closed);
+  setRams(sc.closed, sc.slow);
   setFluidGrad(sc.id);
 }
 
@@ -674,7 +660,7 @@ function tick() {
     sidpp = lerp(sc.sidpp[0],sc.sidpp[1],r)+Math.random()*200-100;
     sicp  = lerp(sc.sicp[0],sc.sicp[1],r)+Math.random()*250-125;
     pf    = lerp(sc.pf[0],sc.pf[1],r)+Math.random()*300-150;
-    kickVol += .12; vol = kickVol;
+    kickVol += .04; vol = kickVol;
     if (Math.floor(el/3000)%2===0) {
       document.getElementById('fluidBadge').className   = 'fluid-badge badge-gas';
       document.getElementById('fluidBadge').textContent = '⚡ GAS — Influjo Activo';
@@ -687,7 +673,7 @@ function tick() {
     sidpp = lerp(scenarios[1].sidpp[1]*.6,sc.sidpp[1],r)+Math.random()*100-50;
     sicp  = lerp(scenarios[1].sicp[1]*.6,sc.sicp[1],r)+Math.random()*80-40;
     pf    = lerp(scenarios[1].pf[1]*.55,sc.pf[1],r)+Math.random()*120-60;
-    kickVol = Math.max(0,kickVol-.05); vol = kickVol;
+    kickVol = Math.max(0,kickVol-.02); vol = kickVol;
     if (t>.6) flowActive = false;
   }
 
@@ -717,8 +703,6 @@ function tick() {
     sc.id===0 ? 'Gradiente normal: 0.465 PSI/ft' :
     sc.id===1 ? `Gradiente anormal: ${(pf/10000).toFixed(3)} PSI/ft — PELIGROSO` :
                 `Gradiente estabilizando: ${(pf/10000).toFixed(3)} PSI/ft`;
-
-  document.getElementById('timerBar').style.width = (t*100)+'%';
 
   if (el >= sc.dur) { cur=(cur+1)%3; scStart=Date.now(); applyScenario(scenarios[cur]); }
 }
